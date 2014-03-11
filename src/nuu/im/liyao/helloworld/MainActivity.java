@@ -15,9 +15,34 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class MainActivity extends Activity {
-
 	private final static String MY_MESSAGE = "nuu.im.sendmessage";
 	private Button send_broadcast;
+	private BroadcastReceiver mBroadcast = new BroadcastReceiver(){
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			
+			if(MY_MESSAGE.equals(action))
+			{
+				Log.v("tag", "got message.");
+				String message = "You got message "+intent.getExtras().getString("foo");
+				
+				new AlertDialog.Builder(MainActivity.this)
+				.setMessage(message)
+				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// 注銷該receiver
+						unregisterReceiver(mBroadcast);
+					}
+				})
+				.show();
+			}
+		}
+    	
+    };
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,41 +55,20 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 
-				// ���Ubroadcast�ƥ�
+				// 註冊一個receiver
 				registerReceiver(mBroadcast, new IntentFilter(MY_MESSAGE));
 				Intent intent = new Intent();
 				intent.setAction(MY_MESSAGE);
+				
+				// 加入額外變數
+				intent.putExtra("foo", "bar");
+				
+				// 廣播intent
 				sendBroadcast(intent);
 			}
 		});
         
     }
-    
-    private BroadcastReceiver mBroadcast = new BroadcastReceiver(){
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if(MY_MESSAGE.equals(intent.getAction())){
-				Log.v("tag", "got message.");
-				
-				new AlertDialog.Builder(MainActivity.this)
-				.setMessage("Receive Message.")
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						unregisterReceiver(mBroadcast);
-					}
-				})
-				.show();
-			}
-			else if("test".equals(intent.getAction())){
-				Log.v("tag", "test");
-			}
-		}
-    	
-    };
-    
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
